@@ -1,7 +1,4 @@
 # Dev Override Values for my Helm Chart
 
-container:
-  image: nginx
-
 replicaCount: 4
 
