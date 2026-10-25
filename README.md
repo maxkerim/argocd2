@@ -1,19 +1,21 @@
 # GitOps-проект на Kubernetes
 
-Учебный DevOps-проект: развёртывание приложений в Kubernetes через Argo CD и Helm. Для dev и prod используются отдельные Argo CD Applications, namespace и значения Helm.
+Учебный GitOps-проект: развёртывание приложений в Kubernetes через Argo CD и Helm. Dev и prod управляются отдельными корневыми Argo CD Applications, используют отдельные namespace и values-файлы.
 
 ## Архитектура
 
 ```mermaid
 flowchart LR
-    Git[GitHub] --> Root[Корневое Application]
-    Root --> Dev[Dev Applications]
+   Git[GitHub] --> RootDev[Корневое Application dev]
+   Git --> RootProd[Корневое Application prod]
+   RootDev --> Dev[Dev Applications]
+   RootProd --> Prod[Prod Applications]
     Dev --> Chart[Helm chart]
-    Prod[Prod Applications] --> Chart
+   Prod --> Chart
     Chart --> K8s[Deployment и Service в Kubernetes]
 ```
 
-`root.yaml` следит за каталогом `demo_dev/applications`. Production Applications находятся в `demo_prod/applications` и регистрируются отдельно. Все приложения используют `HelmCharts/MyChart1`.
+`root.yaml` следит только за `demo_dev/applications`, а `root_prod.yaml` — только за `demo_prod/applications`. Оба окружения используют `HelmCharts/MyChart1`, но разные values-файлы.
 
 | Окружение | Файл values | Реплики | Образ |
 | --- | --- | ---: | --- |
@@ -27,6 +29,7 @@ flowchart LR
 ```text
 .
 ├── root.yaml                    # Корневое Argo CD Application для dev
+├── root_prod.yaml               # Корневое Argo CD Application для prod
 ├── demo_dev/applications/       # Applications для dev
 ├── demo_prod/applications/      # Applications для prod
 ├── .github/workflows/           # Проверки Helm в GitHub Actions
@@ -40,24 +43,21 @@ flowchart LR
 - Kubernetes-кластер и `kubectl`
 - Argo CD, установленный в кластере
 - Helm 3
-- SSH-доступ Argo CD к репозиторию `git@github.com:maxkerim/argocd2.git`
+- Доступ Argo CD к репозиторию `https://github.com/maxkerim/argocd2` (для приватного репозитория настройте credentials в Argo CD)
 
 ## Запуск
 
-1. Добавьте SSH-ключ репозитория в Argo CD, если репозиторий закрытый.
-2. Примените корневое Application для dev:
+1. Если репозиторий закрытый, добавьте его credentials в Argo CD.
+2. Зарегистрируйте корневое Application для нужного окружения (можно применить оба файла):
 
    ```sh
    kubectl apply -f root.yaml
+   kubectl apply -f root_prod.yaml
    ```
 
-3. Зарегистрируйте production Applications:
+Каждый корневой Application создаёт дочерние Applications только из своего каталога. Чтобы развернуть только dev или только prod, примените соответствующий файл.
 
-   ```sh
-   kubectl apply -f demo_prod/applications/
-   ```
-
-4. Проверьте chart локально:
+3. Проверьте chart локально:
 
    ```sh
    helm lint HelmCharts/MyChart1
