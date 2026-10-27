@@ -10,7 +10,7 @@ spec:
     name: in-cluster
     namespace: argocd
   source:
-    path: demo_prod/applications
+    path: environments/prod/applications
     repoURL: https://github.com/maxkerim/argocd2
     targetRevision: HEAD
   project: default

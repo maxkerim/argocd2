@@ -19,12 +19,12 @@ jobs:
 
       - name: Lint charts
         run: |
-          helm lint HelmCharts/MyChart1
-          helm lint HelmCharts/MyChart2
+          helm lint HelmCharts/nginx-web
+          helm lint HelmCharts/nginx-web-example
 
       - name: Render development and production manifests
         run: |
-          helm template demo HelmCharts/MyChart1 -f HelmCharts/MyChart1/values_dev.yaml > /dev/null
-          helm template demo HelmCharts/MyChart1 -f HelmCharts/MyChart1/values_prod.yaml > /dev/null
-          helm template demo HelmCharts/MyChart1 -f HelmCharts/MyChart1/values_prod.yaml --set ingress.enabled=true > /dev/null
-          helm template demo HelmCharts/MyChart2 -f HelmCharts/MyChart2/values.yaml --set ingress.enabled=true > /dev/null
+          helm template demo HelmCharts/nginx-web -f HelmCharts/nginx-web/values_dev.yaml > /dev/null
+          helm template demo HelmCharts/nginx-web -f HelmCharts/nginx-web/values_prod.yaml > /dev/null
+          helm template demo HelmCharts/nginx-web -f HelmCharts/nginx-web/values_prod.yaml --set ingress.enabled=true > /dev/null
+          helm template demo HelmCharts/nginx-web-example -f HelmCharts/nginx-web-example/values.yaml --set ingress.enabled=true > /dev/null

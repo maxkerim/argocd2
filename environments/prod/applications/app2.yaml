@@ -10,7 +10,7 @@ spec:
     name     : in-cluster
     namespace: app2-prod
   source:
-    path   : "HelmCharts/MyChart1"
+    path   : "HelmCharts/nginx-web"
     repoURL: "https://github.com/maxkerim/argocd2"
     targetRevision: HEAD
     helm:

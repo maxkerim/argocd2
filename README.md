@@ -1,6 +1,10 @@
-# GitOps-проект на Kubernetes
+# NGINX-приложения в Kubernetes через Argo CD и Helm
 
-Учебный GitOps-проект: развёртывание трёх nginx-приложений в Kubernetes через Argo CD и Helm. Dev и prod управляются отдельными корневыми Argo CD Applications, используют отдельные namespace и values-файлы. Helm-чарты хранятся в репозитории как исходники; собранные архивы чартов не требуются.
+Демонстрационный GitOps-проект для развёртывания трёх NGINX-приложений в Kubernetes. Argo CD синхронизирует окружения dev и prod из отдельных каталогов, а Helm задаёт общие шаблоны и параметры каждого окружения. Чарты хранятся в репозитории как исходники; собранные архивы не требуются.
+
+## Topics
+
+`argocd` · `gitops` · `helm` · `kubernetes` · `nginx`
 
 ## Чем отличается от monitoring-gitops
 
@@ -14,17 +18,17 @@ flowchart LR
    Git --> RootProd[Корневое Application prod]
    RootDev --> Dev[Dev Applications]
    RootProd --> Prod[Prod Applications]
-    Dev --> Chart[Helm chart]
+   Dev --> Chart[Helm chart]
    Prod --> Chart
-    Chart --> K8s[Deployment и Service в Kubernetes]
+   Chart --> K8s[Deployment и Service в Kubernetes]
 ```
 
-`root.yaml` следит только за `demo_dev/applications`, а `root_prod.yaml` — только за `demo_prod/applications`. Оба окружения используют `HelmCharts/MyChart1`, но разные values-файлы.
+`root.yaml` следит только за `environments/dev/applications`, а `root_prod.yaml` — только за `environments/prod/applications`. Оба окружения используют `HelmCharts/nginx-web`, но разные values-файлы.
 
 | Окружение | Файл values | Реплики | Образ |
 | --- | --- | ---: | --- |
-| Dev | `values_dev.yaml` | 4 | `nginx:alpine` |
-| Prod | `values_prod.yaml` | 3 | `nginx:alpine` |
+| Dev | `values_dev.yaml` | 3 | `nginx:alpine` |
+| Prod | `values_prod.yaml` | 4 | `nginx:alpine` |
 
 В чарте настроены HTTP readiness/liveness probes и ограничения CPU/памяти. Service по умолчанию имеет тип `ClusterIP`. Ingress можно включить отдельно, задав домен, класс контроллера и TLS.
 
@@ -34,12 +38,12 @@ flowchart LR
 .
 ├── root.yaml                    # Корневое Argo CD Application для dev
 ├── root_prod.yaml               # Корневое Argo CD Application для prod
-├── demo_dev/applications/       # Applications для dev
-├── demo_prod/applications/      # Applications для prod
+├── environments/dev/applications/  # Applications для dev
+├── environments/prod/applications/ # Applications для prod
 ├── .github/workflows/           # Проверки Helm в GitHub Actions
 └── HelmCharts/
-    ├── MyChart1/                # Chart, используемый Applications
-    └── MyChart2/                # Дополнительный пример chart
+    ├── nginx-web/               # Chart, используемый Applications
+    └── nginx-web-example/       # Дополнительный пример chart
 ```
 
 ## Требования
@@ -64,10 +68,10 @@ flowchart LR
 3. Проверьте chart локально:
 
    ```sh
-   helm lint HelmCharts/MyChart1
-   helm lint HelmCharts/MyChart2
-   helm template demo HelmCharts/MyChart1 -f HelmCharts/MyChart1/values_dev.yaml
-   helm template demo HelmCharts/MyChart1 -f HelmCharts/MyChart1/values_prod.yaml
+   helm lint HelmCharts/nginx-web
+   helm lint HelmCharts/nginx-web-example
+   helm template demo HelmCharts/nginx-web -f HelmCharts/nginx-web/values_dev.yaml
+   helm template demo HelmCharts/nginx-web -f HelmCharts/nginx-web/values_prod.yaml
    ```
 
 GitHub Actions автоматически запускает lint и проверяет рендеринг values при push и pull request.
@@ -82,7 +86,7 @@ kubectl port-forward -n app1-prod svc/myapp1-prod-service 8080:80
 
 После этого откройте `http://localhost:8080`.
 
-В облачном кластере для внешнего IP можно изменить `service.type` в `HelmCharts/MyChart1/values.yaml` на `LoadBalancer` и отправить изменение в Git. Затем проверьте адрес:
+В облачном кластере для внешнего IP можно изменить `service.type` в `HelmCharts/nginx-web/values.yaml` на `LoadBalancer` и отправить изменение в Git. Затем проверьте адрес:
 
 ```sh
 kubectl get svc -n app1-prod
@@ -92,21 +96,21 @@ kubectl get svc -n app1-prod
 
 ### Настройка Ingress
 
-Ingress требует установленного в кластере ingress-controller (например, NGINX Ingress Controller) и DNS-записи, указывающей на адрес этого контроллера. Чтобы включить его для production, настройте `HelmCharts/MyChart1/values_prod.yaml`:
+Ingress требует установленного в кластере ingress-controller (например, NGINX Ingress Controller) и DNS-записи, указывающей на адрес этого контроллера. Чтобы включить его для production, настройте `HelmCharts/nginx-web/values_prod.yaml`:
 
 ```yaml
 ingress:
-   enabled: true
-   className: nginx
-   hosts:
-      - host: app.example.com
-         paths:
-            - path: /
-               pathType: Prefix
-   tls:
-      - secretName: app-tls
-         hosts:
-            - app.example.com
+  enabled: true
+  className: nginx
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-tls
+      hosts:
+        - app.example.com
 ```
 
 Замените `app.example.com` на свой домен, создайте DNS-запись на адрес ingress-controller и создайте TLS Secret `app-tls` в namespace приложения. Если TLS пока не нужен, задайте `tls: []` или удалите блок. Argo CD применит Ingress вместе с остальными ресурсами после отправки изменений в Git.

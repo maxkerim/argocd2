@@ -1,15 +1,15 @@
 apiVersion: v2
-name       : App-HelmChart-1
-description: My Helm chart for Kubernetes
+name       : nginx-web
+description: Helm chart for deploying the NGINX web server on Kubernetes
 type       : application
 version    : 0.1.0   # This is the Helm Chart version
 appVersion : "1.2.3" # This is the version of the application being deployed
 
 keywords:
-  - apache
-  - http
-  - https
-  - artem
+  - nginx
+  - web
+  - kubernetes
+  - gitops
 
 maintainers:
   - name : Artem Feoktistov

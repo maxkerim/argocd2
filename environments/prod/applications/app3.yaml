@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name     : myapp3-dev
+  name     : myapp3-prod
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     name     : in-cluster
-    namespace: app3-dev
+    namespace: app3-prod
   source:
-    path   : "HelmCharts/MyChart1"
+    path   : "HelmCharts/nginx-web"
     repoURL: "https://github.com/maxkerim/argocd2"
     targetRevision: HEAD
     helm:
       valueFiles:
-      - values_dev.yaml
+      - values_prod.yaml
   project: default
   syncPolicy:
     automated:
