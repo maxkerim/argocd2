@@ -1,6 +1,10 @@
 # GitOps-проект на Kubernetes
 
-Учебный GitOps-проект: развёртывание приложений в Kubernetes через Argo CD и Helm. Dev и prod управляются отдельными корневыми Argo CD Applications, используют отдельные namespace и values-файлы.
+Учебный GitOps-проект: развёртывание трёх nginx-приложений в Kubernetes через Argo CD и Helm. Dev и prod управляются отдельными корневыми Argo CD Applications, используют отдельные namespace и values-файлы. Helm-чарты хранятся в репозитории как исходники; собранные архивы чартов не требуются.
+
+## Чем отличается от monitoring-gitops
+
+Этот репозиторий показывает GitOps-доставку приложений и разделение dev/prod: Argo CD синхронизирует три nginx-приложения из Helm chart. `monitoring-gitops` предназначен для другого сценария: он разворачивает Rails-приложение и стек наблюдаемости VictoriaMetrics, Grafana и Fluent Bit. В этом репозитории стек мониторинга не устанавливается и не настраивается.
 
 ## Архитектура
 
